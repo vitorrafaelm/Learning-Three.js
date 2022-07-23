@@ -10,9 +10,17 @@ let sizes = {
 };
 
 const CANVAS = document.querySelector(".webgl");
+
+// Cria uma cena que é o mundo virtual
 const SCENE = new THREE.Scene();
+
+// Meio que é a variável de iluminação, que dá luz a cena, recebe cor e intensidade
 const AMBIENT_LIGHT = new THREE.AmbientLight(0x404040, 5);
+
+// Outro tipo de luz
 const DIRECTIONAL_LIGHT = new THREE.DirectionalLight(0xffffff, 5);
+
+// Cria uma camera pespectiva
 const ASPECT_CAMERA = sizes.width / sizes.height;
 const PERSPECTIVE_CAMERA = new THREE.PerspectiveCamera(
   120,
@@ -20,9 +28,17 @@ const PERSPECTIVE_CAMERA = new THREE.PerspectiveCamera(
   0.5,
   100
 );
+
+// Serva para controlar o ambiente virtual com o mouse
 const CONTROLS = new OrbitControls(PERSPECTIVE_CAMERA, CANVAS);
-const GRID_HELPER = new THREE.GridHelper(20, 10);
+
+// Grid para ter uma localização, auxilia a construir o mundo virtual
+ const GRID_HELPER = new THREE.GridHelper(20, 10);
+
+
 const GLTF_LOADER = new GLTFLoader();
+
+// É o renderizador do ambiente. Vai renderizar o canvas.
 const RENDERER = new THREE.WebGLRenderer({
   canvas: CANVAS,
 });
@@ -32,8 +48,12 @@ PERSPECTIVE_CAMERA.position.set(0, 0, 2);
 
 SCENE.add(DIRECTIONAL_LIGHT, AMBIENT_LIGHT, PERSPECTIVE_CAMERA, GRID_HELPER);
 
-RenderSizePixel();
+RENDERER.setSize(sizes.width, sizes.height); 
+RENDERER.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
 
+// RenderSizePixel();
+
+// Importa um modelo 3D da internet;
 function importModels() {
   GLTF_LOADER.load(
     gladiator3dPath,
@@ -64,28 +84,33 @@ function importModels() {
   );
 }
 
+RenderSizePixel();
+
 function updateCanvas() {
+  // Renderizar a camera e tudo que tem dentro da cena
   RENDERER.render(SCENE, PERSPECTIVE_CAMERA);
   window.requestAnimationFrame(updateCanvas);
 }
+
+window.addEventListener('resize', () => {
+  sizes.width = window.width; 
+  sizes.height = window.height;
+
+  PERSPECTIVE_CAMERA.aspect = ASPECT_CAMERA; 
+  PERSPECTIVE_CAMERA.updateProjectionMatrix();
+
+  RENDERER.setSize(sizes.width, sizes.height); 
+  RENDERER.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  RenderSizePixel(); 
+})
+
 
 function RenderSizePixel() {
   RENDERER.setSize(sizes.width, sizes.height);
   RENDERER.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 }
 
-window.addEventListener("resize", () => {
-  sizes.width = window.innerWidth;
-  sizes.height = window.innerHeight;
-
-  PERSPECTIVE_CAMERA.aspect = ASPECT_CAMERA;
-  PERSPECTIVE_CAMERA.updateProjectionMatrix();
-
-  RENDERER.setSize(sizes.width, sizes.height);
-  RENDERER.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-  RenderSizePixel();
-});
+updateCanvas();
 
 importModels();
-updateCanvas();
